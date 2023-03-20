@@ -1,0 +1,22 @@
+version: 2.1
+
+orbs:
+  go: circleci/go@1.7.2
+  codecov: codecov/codecov@3.2.4
+
+jobs:
+  test:
+    executor:
+      name: go/default
+      tag: "1.18"
+    steps:
+      - checkout
+      - go/mod-download-cached
+      - run:
+          name: Run tests and collect coverage
+          command: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - codecov/upload
+workflows:
+  main:
+    jobs:
+      - test
