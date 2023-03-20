@@ -1,4 +1,4 @@
-package cqrs_test
+package commandbus_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestCqrs(t *testing.T) {
+func TestCommandBus(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Cqrs Suite")
+	RunSpecs(t, "CommandBus Suite")
 }
