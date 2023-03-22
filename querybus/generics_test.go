@@ -2,9 +2,11 @@ package querybus_test
 
 import (
 	"context"
+	"errors"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/vulpes-ferrilata/cqrs/querybus"
 )
@@ -15,55 +17,142 @@ func (q QueryHandler) Handle(ctx context.Context, query *Query) (*Result, error)
 	return nil, nil
 }
 
+type QueryBusMock struct {
+	mock.Mock
+}
+
+func (q QueryBusMock) Use(middlewareFunc querybus.QueryMiddlewareFunc) error {
+	args := q.Called(middlewareFunc)
+	return args.Error(0)
+}
+
+func (q QueryBusMock) Register(handlerFunc interface{}) error {
+	args := q.Called(handlerFunc)
+	return args.Error(0)
+}
+
+func (q QueryBusMock) Execute(ctx context.Context, query interface{}) (interface{}, error) {
+	args := q.Called(ctx, query)
+	return args.Get(0), args.Error(1)
+}
+
 var _ = Describe("Generics", func() {
 	var ctx context.Context
-	var queryBus querybus.QueryBus
+	var queryBus *QueryBusMock
 
 	BeforeEach(func() {
 		ctx = context.Background()
-		queryBus = querybus.NewQueryBus()
+		queryBus = &QueryBusMock{}
 	})
 
 	Describe("RegisterQueryHandlerWithQueryBus", func() {
-		var err error
+		Context("when QueryBus return error", func() {
+			var err error
 
-		BeforeEach(func() {
-			queryHandler := &QueryHandler{}
-			err = querybus.RegisterQueryHandlerWithQueryBus[Query, Result](queryBus, queryHandler)
+			expectedErr := errors.New("error")
+
+			BeforeEach(func() {
+				queryHandler := &QueryHandler{}
+
+				queryBus.
+					On("Register", mock.AnythingOfType("func(context.Context, *querybus_test.Query) (*querybus_test.Result, error)")).
+					Return(expectedErr).
+					Once()
+
+				err = querybus.RegisterQueryHandlerWithQueryBus[Query, Result](queryBus, queryHandler)
+			})
+
+			It("should return error", func() {
+				Expect(err).Should(MatchError(expectedErr))
+			})
 		})
 
-		It("should not return any error", func() {
-			Expect(err).ShouldNot(HaveOccurred())
+		Context("when QueryBus not return any error", func() {
+			var err error
+
+			BeforeEach(func() {
+				queryHandler := &QueryHandler{}
+
+				queryBus.
+					On("Register", mock.AnythingOfType("func(context.Context, *querybus_test.Query) (*querybus_test.Result, error)")).
+					Return(nil).
+					Once()
+
+				err = querybus.RegisterQueryHandlerWithQueryBus[Query, Result](queryBus, queryHandler)
+			})
+
+			It("should not return any error", func() {
+				Expect(err).ShouldNot(HaveOccurred())
+			})
 		})
 	})
 
 	Describe("RegisterQueryHandlerFuncWithQueryBus", func() {
-		var err error
+		Context("when QueryBus return error", func() {
+			var err error
 
-		BeforeEach(func() {
-			queryHandlerFunc := func(ctx context.Context, query *Query) (*Result, error) {
-				return nil, nil
-			}
-			err = querybus.RegisterQueryHandlerFuncWithQueryBus[Query, Result](queryBus, queryHandlerFunc)
+			expectedErr := errors.New("error")
+
+			BeforeEach(func() {
+				queryHandlerFunc := func(ctx context.Context, query *Query) (*Result, error) {
+					return nil, nil
+				}
+
+				queryBus.
+					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/querybus_test.Result]")).
+					Return(expectedErr).
+					Once()
+
+				err = querybus.RegisterQueryHandlerFuncWithQueryBus[Query, Result](queryBus, queryHandlerFunc)
+			})
+
+			It("should return error", func() {
+				Expect(err).Should(MatchError(expectedErr))
+			})
 		})
 
-		It("should not return any error", func() {
-			Expect(err).ShouldNot(HaveOccurred())
+		Context("when QueryBus not return any error", func() {
+			var err error
+
+			BeforeEach(func() {
+				queryHandlerFunc := func(ctx context.Context, query *Query) (*Result, error) {
+					return nil, nil
+				}
+
+				queryBus.
+					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/querybus_test.Result]")).
+					Return(nil).
+					Once()
+
+				err = querybus.RegisterQueryHandlerFuncWithQueryBus[Query, Result](queryBus, queryHandlerFunc)
+			})
+
+			It("should not return any error", func() {
+				Expect(err).ShouldNot(HaveOccurred())
+			})
 		})
 	})
 
 	Describe("ExecuteQueryWithQueryBus", func() {
-		When("handler has not registered yet", func() {
+		Context("when QueryBus return error", func() {
 			var result *Result
 			var err error
 
+			expectedErr := errors.New("error")
+
 			BeforeEach(func() {
 				query := &Query{}
+
+				queryBus.
+					On("Execute", ctx, query).
+					Return(nil, expectedErr).
+					Once()
+
 				result, err = querybus.ExecuteQueryWithQueryBus[Query, Result](queryBus, ctx, query)
 			})
 
 			It("should return error", func() {
-				Expect(err).Should(MatchError(querybus.ErrQueryHasNotRegisteredYet))
+				Expect(err).Should(MatchError(expectedErr))
 			})
 
 			It("should return nil result", func() {
@@ -71,20 +160,20 @@ var _ = Describe("Generics", func() {
 			})
 		})
 
-		When("handler is registered", func() {
-			expectedResult := &Result{}
-
+		Context("when QueryBus return result", func() {
 			var result *Result
 			var err error
 
-			BeforeEach(func() {
-				queryHandlerFunc := func(ctx context.Context, query *Query) (*Result, error) {
-					return expectedResult, nil
-				}
-				err = querybus.RegisterQueryHandlerFuncWithQueryBus[Query, Result](queryBus, queryHandlerFunc)
-				Expect(err).ShouldNot(HaveOccurred())
+			expectedResult := &Result{}
 
+			BeforeEach(func() {
 				query := &Query{}
+
+				queryBus.
+					On("Execute", ctx, query).
+					Return(expectedResult, nil).
+					Once()
+
 				result, err = querybus.ExecuteQueryWithQueryBus[Query, Result](queryBus, ctx, query)
 			})
 
