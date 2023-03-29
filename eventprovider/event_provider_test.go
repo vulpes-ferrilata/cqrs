@@ -5,7 +5,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/vulpes-ferrilata/cqrs/eventprovider"
+	"github.com/vulpes-ferrilata/cqrs/v2/eventprovider"
 )
 
 type MockAggregateRoot struct {

@@ -1,4 +1,4 @@
-module github.com/vulpes-ferrilata/cqrs
+module github.com/vulpes-ferrilata/cqrs/v2
 
 go 1.18
 

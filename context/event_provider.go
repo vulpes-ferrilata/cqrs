@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	"github.com/vulpes-ferrilata/cqrs/eventprovider"
+	"github.com/vulpes-ferrilata/cqrs/v2/eventprovider"
 )
 
 type eventProviderKey struct{}

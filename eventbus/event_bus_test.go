@@ -6,7 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/vulpes-ferrilata/cqrs/eventbus"
+	"github.com/vulpes-ferrilata/cqrs/v2/eventbus"
 )
 
 type HandlerType string

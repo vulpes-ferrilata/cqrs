@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/vulpes-ferrilata/cqrs/commandbus"
+	"github.com/vulpes-ferrilata/cqrs/v2/commandbus"
 )
 
 type CommandHandler struct{}
@@ -99,7 +99,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				commandBus.
-					On("Register", mock.AnythingOfType("CommandHandlerFunc[*github.com/vulpes-ferrilata/cqrs/commandbus_test.Command]")).
+					On("Register", mock.AnythingOfType("CommandHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/commandbus_test.Command]")).
 					Return(expectedErr).
 					Once()
 
@@ -120,7 +120,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				commandBus.
-					On("Register", mock.AnythingOfType("CommandHandlerFunc[*github.com/vulpes-ferrilata/cqrs/commandbus_test.Command]")).
+					On("Register", mock.AnythingOfType("CommandHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/commandbus_test.Command]")).
 					Return(nil).
 					Once()
 

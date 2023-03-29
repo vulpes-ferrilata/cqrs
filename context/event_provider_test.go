@@ -6,8 +6,8 @@ import (
 
 	"context"
 
-	cqrs_context "github.com/vulpes-ferrilata/cqrs/context"
-	"github.com/vulpes-ferrilata/cqrs/eventprovider"
+	cqrs_context "github.com/vulpes-ferrilata/cqrs/v2/context"
+	"github.com/vulpes-ferrilata/cqrs/v2/eventprovider"
 )
 
 var _ = Describe("EventProvider", func() {

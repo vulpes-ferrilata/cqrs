@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/vulpes-ferrilata/cqrs/querybus"
+	"github.com/vulpes-ferrilata/cqrs/v2/querybus"
 )
 
 type QueryHandler struct{}
@@ -99,7 +99,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				queryBus.
-					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/querybus_test.Result]")).
+					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/v2/querybus_test.Result]")).
 					Return(expectedErr).
 					Once()
 
@@ -120,7 +120,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				queryBus.
-					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/querybus_test.Result]")).
+					On("Register", mock.AnythingOfType("QueryHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/querybus_test.Query,*github.com/vulpes-ferrilata/cqrs/v2/querybus_test.Result]")).
 					Return(nil).
 					Once()
 

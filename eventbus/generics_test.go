@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
 
-	"github.com/vulpes-ferrilata/cqrs/eventbus"
+	"github.com/vulpes-ferrilata/cqrs/v2/eventbus"
 )
 
 type EventHandler struct{}
@@ -97,7 +97,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				eventBus.
-					On("Register", mock.AnythingOfType("EventHandlerFunc[*github.com/vulpes-ferrilata/cqrs/eventbus_test.Event]")).
+					On("Register", mock.AnythingOfType("EventHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/eventbus_test.Event]")).
 					Return(expectedErr).
 					Once()
 
@@ -118,7 +118,7 @@ var _ = Describe("Generics", func() {
 				}
 
 				eventBus.
-					On("Register", mock.AnythingOfType("EventHandlerFunc[*github.com/vulpes-ferrilata/cqrs/eventbus_test.Event]")).
+					On("Register", mock.AnythingOfType("EventHandlerFunc[*github.com/vulpes-ferrilata/cqrs/v2/eventbus_test.Event]")).
 					Return(nil).
 					Once()
 
