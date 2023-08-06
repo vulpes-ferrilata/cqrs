@@ -3,40 +3,50 @@ package middlewares
 import (
 	"context"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
 	"github.com/vulpes-ferrilata/cqrs"
-	pkg_mongo "github.com/vulpes-ferrilata/cqrs/pkg/mongo"
+	"github.com/vulpes-ferrilata/cqrs/pkg/db"
 )
 
-func NewMongoTransactionMiddleware(db pkg_mongo.Database, opts ...*options.SessionOptions) *MongoTransactionMiddleware {
-	return &MongoTransactionMiddleware{
-		db:   db,
-		opts: opts,
+func NewTransactionMiddleware[DB any](transactionManager db.TransactionManager[DB]) *TransactionMiddleware[DB] {
+	return &TransactionMiddleware[DB]{
+		transactionManager: transactionManager,
 	}
 }
 
-type MongoTransactionMiddleware struct {
-	db   pkg_mongo.Database
-	opts []*options.SessionOptions
+type TransactionMiddleware[DB any] struct {
+	transactionManager db.TransactionManager[DB]
 }
 
-func (m MongoTransactionMiddleware) CommandMiddleware() cqrs.CommandMiddlewareFunc {
+func (m TransactionMiddleware[DB]) CommandMiddleware() cqrs.CommandMiddlewareFunc {
 	return func(handler cqrs.CommandHandlerFunc[any]) cqrs.CommandHandlerFunc[any] {
 		return func(ctx context.Context, command any) error {
-			session, err := m.db.Client().StartSession(m.opts...)
-			if err != nil {
-				return err
-			}
+			if isTransactionStarted := m.transactionManager.IsTransactionStarted(ctx); !isTransactionStarted {
+				committer, ctx, err := m.transactionManager.StartTransaction(ctx)
+				if err != nil {
+					return err
+				}
+				defer func() {
+					if r := recover(); r != nil {
+						committer.RollbackTransaction(ctx)
 
-			if _, err := session.WithTransaction(ctx, func(ctx mongo.SessionContext) (interface{}, error) {
+						panic(r)
+					}
+				}()
+
 				if err := handler(ctx, command); err != nil {
-					return nil, err
+					committer.RollbackTransaction(ctx)
+
+					return err
 				}
 
-				return nil, nil
-			}); err != nil {
+				if err := committer.CommitTransaction(ctx); err != nil {
+					return err
+				}
+
+				return nil
+			}
+
+			if err := handler(ctx, command); err != nil {
 				return err
 			}
 

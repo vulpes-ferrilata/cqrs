@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/mock/gomock"
+
 	"github.com/vulpes-ferrilata/cqrs"
 	mock_cqrs "github.com/vulpes-ferrilata/cqrs/mocks"
-	"go.uber.org/mock/gomock"
 )
 
 func TestRegisterCommandHandler(t *testing.T) {
