@@ -27,7 +27,7 @@ func (t transactionManager) IsTransactionStarted(ctx context.Context) bool {
 }
 
 func (t transactionManager) StartTransaction(ctx context.Context) (db.Committer, context.Context, error) {
-	transaction := t.db.Begin(t.opts)
+	transaction := t.db.WithContext(ctx).Begin(t.opts)
 
 	ctx = withTransaction(ctx, transaction)
 
@@ -37,7 +37,7 @@ func (t transactionManager) StartTransaction(ctx context.Context) (db.Committer,
 func (t transactionManager) GetTransaction(ctx context.Context) *gorm.DB {
 	transaction, ok := getTransaction(ctx)
 	if !ok {
-		return t.db
+		return t.db.WithContext(ctx)
 	}
 
 	return transaction
